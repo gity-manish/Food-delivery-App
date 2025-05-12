@@ -8,6 +8,10 @@
   background-color: #fff;
   display: flex;
   flex-direction: column;
+  display: flex;
+  flex-direction: column;
+  height: 100%; /* Ensure the card has consistent height */
+  justify-content: space-between;
 }
 
 .food-item:hover {
@@ -15,23 +19,67 @@
   box-shadow: 0px 8px 20px rgba(0, 0, 0, 0.1);
 }
 
+/* Image container should have fixed height */
 .food-item-img-container {
   position: relative;
-}
-
-.food-item-image {
   width: 100%;
-  height: auto;
-  object-fit: cover;
+  height: 160px;
+  overflow: hidden;
   border-radius: 15px 15px 0px 0px;
 }
 
+/* Image fills the container properly */
+.food-item-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* ADD icon styling */
+.food-item-img-container .add {
+  width: 35px;
+  height: 35px;
+  position: absolute;
+  bottom: 10px;
+  right: 10px;
+  cursor: pointer;
+  border-radius: 50%;
+  background-color: #fff;
+  padding: 6px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+}
+
+/* Counter UI styling */
+.food-item-counter {
+  position: absolute;
+  bottom: 10px;
+  right: 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border-radius: 50px;
+  background-color: white;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+}
+
+.food-item-counter img {
+  width: 22px;
+  height: 22px;
+  cursor: pointer;
+}
+
+/* Item Info */
 .food-item-info {
   padding: 16px 20px;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  justify-content: space-between; /* Spread name, description, price */
+  flex-grow: 1;
 }
+
+
 
 .food-item-name-rating {
   display: flex;
@@ -63,36 +111,6 @@
   margin-top: 5px;
 }
 
-/* Add to cart / counter */
-.food-item-img-container .add {
-  width: 35px;
-  position: absolute;
-  bottom: 15px;
-  right: 15px;
-  cursor: pointer;
-  border-radius: 50%;
-  background-color: #fff;
-  padding: 5px;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
-}
-
-.food-item-counter {
-  position: absolute;
-  bottom: 15px;
-  right: 15px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 6px 10px;
-  border-radius: 50px;
-  background-color: white;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
-}
-
-.food-item-counter img {
-  width: 24px;
-}
-
 /* Responsive tweaks */
 @media (max-width: 768px) {
   .food-item-info {
@@ -114,6 +132,7 @@
   .food-item-counter img,
   .food-item-img-container .add {
     width: 28px;
+    height: 28px;
   }
 }
 
@@ -138,5 +157,6 @@
   .food-item-counter img,
   .food-item-img-container .add {
     width: 24px;
+    height: 24px;
   }
 }

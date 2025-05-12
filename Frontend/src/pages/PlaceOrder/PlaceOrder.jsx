@@ -1,116 +1,195 @@
-// eslint-disable-next-line no-unused-vars
-import React, { useState, useEffect,useContext } from 'react'
-import './PlaceOrder.css'
-import { StoreContext } from '../../Context/StoreContext'
-import axios from 'axios'
-import { useNavigate } from 'react-router-dom'
+import React, { useState, useRef, useEffect, useContext } from "react";
+import "./PlaceOrder.css";
+import {
+  MapContainer,
+  TileLayer,
+  Marker,
+  useMapEvents,
+} from "react-leaflet";
+import "leaflet/dist/leaflet.css";
+import L from "leaflet";
+import axios from "axios";
+import { StoreContext } from "../../context/StoreContext";
 
+import markerIcon2x from "leaflet/dist/images/marker-icon-2x.png";
+import markerIcon from "leaflet/dist/images/marker-icon.png";
+import markerShadow from "leaflet/dist/images/marker-shadow.png";
+
+delete L.Icon.Default.prototype._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: markerIcon2x,
+  iconUrl: markerIcon,
+  shadowUrl: markerShadow,
+});
+
+function LocationMarker({ setLocation, setSelectedPosition, selectedPosition }) {
+  useMapEvents({
+    click(e) {
+      const { lat, lng } = e.latlng;
+      const pos = [lat, lng];
+      setSelectedPosition(pos);
+
+      axios
+        .get(`https://nominatim.openstreetmap.org/reverse`, {
+          params: {
+            lat,
+            lon: lng,
+            format: "json",
+          },
+          headers: {
+            "Accept-Language": "en",
+            "User-Agent": "place-order-app/1.0",
+          },
+        })
+        .then((res) => {
+          setLocation(res.data.display_name || `Lat: ${lat}, Lng: ${lng}`);
+        })
+        .catch(() => {
+          setLocation(`Lat: ${lat}, Lng: ${lng}`);
+        });
+    },
+  });
+
+  return selectedPosition ? <Marker position={selectedPosition} /> : null;
+}
 
 const PlaceOrder = () => {
-  const {getTotalCartAmount,token,food_list,cartItems,url} =useContext(StoreContext);
-  const [data,setData] = useState({
-    firstName:"",
-    lastName:"",
-    email:"",
-    street:"",
-    city:"",
-    state:"",
-    zipcode:"",
-    country:"",
-    phone:""
-  })
-  const onChangeHandler = (event) => {
-    const name = event.target.name;
-    const value = event.target.value;
-    setData(data=>({...data,[name]:value}))
-  }
-  const placeOrder = async (event) => {
-    event.preventDefault();
-    let orderItems = [];
-    food_list.map((item)=>{
-      if (cartItems[item._id]>0) {
-        let itemInfo = item;
-        itemInfo["quantity"] = cartItems[item._id];
-        orderItems.push(itemInfo)
+  const { getTotalCartAmount } = useContext(StoreContext);
+
+  const [location, setLocation] = useState("");
+  const [searchInput, setSearchInput] = useState("");
+  const [suggestions, setSuggestions] = useState([]);
+  const [selectedPosition, setSelectedPosition] = useState(null);
+  const mapRef = useRef(null);
+
+  useEffect(() => {
+    const delayDebounce = setTimeout(() => {
+      if (searchInput.length >= 3) {
+        axios
+          .get("https://nominatim.openstreetmap.org/search", {
+            params: {
+              q: searchInput,
+              format: "json",
+              addressdetails: 1,
+              limit: 5,
+              countrycodes: "NP",
+              viewbox: "85.273,27.755,85.388,27.658",
+              bounded: 1,
+            },
+            headers: {
+              "Accept-Language": "en",
+              "User-Agent": "place-order-app/1.0",
+            },
+          })
+          .then((res) => {
+            setSuggestions(res.data);
+          })
+          .catch(() => {
+            setSuggestions([]);
+          });
+      } else {
+        setSuggestions([]);
       }
-    })
-    let orderData = {
-      address:data,
-      items:orderItems,
-      amount:getTotalCartAmount()+2,
-    }
-    let response = await axios.post(url+"/api/order/place",orderData,{headers:{token}})
-    
+    }, 500);
 
-    if (response.data.success){
-      const {session_url} = response.data;
-      window.location.replace(session_url);
-    }
-    else{
-      alert("Error");
-    }
-  }
+    return () => clearTimeout(delayDebounce);
+  }, [searchInput]);
 
-  const navigate = useNavigate();
+  const handleSelectSuggestion = (place) => {
+    const lat = parseFloat(place.lat);
+    const lon = parseFloat(place.lon);
+    setLocation(place.display_name);
+    setSuggestions([]);
+    setSearchInput("");
+    setSelectedPosition([lat, lon]);
 
-  useEffect(()=>{
-    if (!token){
-      navigate('/cart')
+    if (mapRef.current) {
+      mapRef.current.setView([lat, lon], 16);
     }
-    else if(getTotalCartAmount()===0)
-    {
-      navigate('/cart')
-    }
-  },[token])
-
+  };
 
   return (
+    <div className="place-order-container">
+      <h3>Place Your Order</h3>
+      <div className="form-map-wrapper">
+        <div className="form-section">
+          <input type="text" placeholder="Name" className="user-input" />
+          <input type="email" placeholder="Email" className="user-input" />
+          <input type="tel" placeholder="Phone no" className="user-input" />
+          {location && (
+            <div className="location-info">
+              <strong>Selected Location:</strong>
+              <br />
+              {location}
+            </div>
+          )}
 
-
-    <form onSubmit={placeOrder} className='place-order'>
-      <div className="place-order-left">
-        <p className="title">Delivery Information</p>
-        <div className="multi-fields">
-          <input required name='firstName' onChange={onChangeHandler} value={data.firstName} type="text" placeholder='First Name'/>
-          <input required name='lastName'onChange={onChangeHandler} value={data.lastName} type="text" placeholder='Last Name'/>
-        </div>
-        <input required name='email' onChange={onChangeHandler} value={data.email}  type="email" placeholder='Email Address'/>
-        <input  required name='street' onChange={onChangeHandler} value={data.street} type="text" placeholder='Street' />
-        <div className="multi-fields">
-          <input  required name='city' onChange={onChangeHandler} value={data.city} type="text" placeholder='City'/>
-          <input required name='state' onChange={onChangeHandler} value={data.state} type="text" placeholder='State'/>
-        </div>
-        <div className="multi-fields">
-          <input required name='zipcode' onChange={onChangeHandler} value={data.zipcode} type="text" placeholder='Zip code'/>
-          <input required name='country' onChange={onChangeHandler} value={data.country} type="text" placeholder='Country'/>
-        </div>
-        <input required name='phone' onChange={onChangeHandler} value={data.phone} type="text" placeholder='Phone'/>
-      </div>
-      <div className="place-order-right">
-      <div className="cart-total">
-          <h2>Cart Totals</h2>
-          <div>
-            <div className='cart-total-details'>
-              <p>Subtotal</p>
-              <p>${getTotalCartAmount()}</p>
+          <div className="cart-total">
+            <h2>Cart Total</h2>
+            <div>
+              <div className="cart-total-details">
+                <p>Subtotal</p>
+                <p>Rs.{getTotalCartAmount()}</p>
+              </div>
+              <hr />
+              <div className="cart-total-details">
+                <p>Delivery Fee</p>
+                 <p>Rs.{getTotalCartAmount()===0?0:100}</p>
+              </div>
+              <hr />
+              <div className="cart-total-details">
+                <b>Total</b>
+               <b>Rs.{getTotalCartAmount()===0?0:getTotalCartAmount()+100}</b>
+              </div>
             </div>
-            <hr/>
-            <div className='cart-total-details'>
-              <p>Delivery Fee</p>
-              <p>${getTotalCartAmount()===0?0:2}</p>
-            </div>
-            <hr/>
-            <div className='cart-total-details'>
-              <b>Total</b>
-              <b>${getTotalCartAmount()===0?0:getTotalCartAmount()+2}</b>
-            </div>
+            <button>Proceed to Payment</button>
           </div>
-            <button type='submit'>PROCEED TO PAYMENT</button>
+        </div>
+
+        <div className="map-section">
+          <div className="search-bar">
+            <input
+              type="text"
+              placeholder="Search for a location in Kathmandu..."
+              className="user-input"
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
+            />
+            {suggestions.length > 0 && (
+              <ul className="suggestions-list">
+                {suggestions.map((suggestion, index) => (
+                  <li key={index} onClick={() => handleSelectSuggestion(suggestion)}>
+                    {suggestion.display_name}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+
+          <div id="map">
+            <MapContainer
+              center={[27.7172, 85.324]}
+              zoom={14}
+              whenCreated={(mapInstance) => {
+                mapRef.current = mapInstance;
+              }}
+              style={{ height: "400px", width: "100%", borderRadius: "12px" }}
+            >
+              <TileLayer
+                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                attribution='&copy; <a href="https://osm.org/copyright">OpenStreetMap</a>'
+              />
+              <LocationMarker
+                setLocation={setLocation}
+                setSelectedPosition={setSelectedPosition}
+                selectedPosition={selectedPosition}
+              />
+            </MapContainer>
+          </div>
         </div>
       </div>
-
-    </form>
-  )
-}
+    </div>
+  );
+};
 
 export default PlaceOrder;

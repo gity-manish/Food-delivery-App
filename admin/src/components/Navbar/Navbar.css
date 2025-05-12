@@ -1,13 +1,24 @@
 .navbar {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  padding: 8px 4%;
+  justify-content: center;
+  padding: 20px 4%;
+  background-color: #2f2f2f;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
-.navbar .logo {
-  width: max(10%, 80px);
+.navbar-title {
+  font-size: 26px;
+  font-weight: 600;
+  color: #ffffff;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  letter-spacing: 1px;
 }
-.navbar .profile {
-  width: 40px;
+
+/* Responsive styling */
+@media (max-width: 600px) {
+  .navbar-title {
+    font-size: 20px;
+    text-align: center;
+  }
 }

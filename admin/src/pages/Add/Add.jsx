@@ -5,44 +5,60 @@ import { assets } from "../../assets/assets";
 import axios from "axios";
 import { toast } from "react-toastify";
 
-const Add = ({url}) => {
-  // eslint-disable-next-line no-undef
+const Add = ({ url }) => {
   const [image, setImage] = useState(false);
   const [data, setData] = useState({
     name: "",
     description: "",
     price: "",
-    category: "Salad",
+    category: "Starters",
   });
 
   const onChangeHandler = (event) => {
-    const name = event.target.name;
-    const value = event.target.value;
-    setData((data) => ({ ...data, [name]: value }));
+    const { name, value } = event.target;
+    setData((prev) => ({ ...prev, [name]: value }));
   };
 
   const onSubmitHandler = async (event) => {
     event.preventDefault();
-    const formData = new FormData();
-    formData.append("name", data.name);
-    formData.append("description", data.description);
-    formData.append("price", Number(data.price));
-    formData.append("category", data.category);
-    formData.append("image", image);
-    const response = await axios.post(`${url}/api/food/add`, formData);
-    if (response.data.success) {
-      setData({
-        name: "",
-        description: "",
-        price: "",
-        category: "Salad",
-      });
-      setImage(false);
-      toast.success(response.data.message);
-    } else {
-      toast.error(response.data.message);
+
+    // Validate image
+    if (!image) {
+      toast.error("Please upload an image.");
+      return;
+    }
+
+    // Log for debugging
+    console.log("Submitting:", { ...data, image });
+
+    try {
+      const formData = new FormData();
+      formData.append("name", data.name);
+      formData.append("description", data.description);
+      formData.append("price", Number(data.price));
+      formData.append("category", data.category);
+      formData.append("image", image);
+
+      const response = await axios.post(`${url}/api/food/add`, formData);
+
+      if (response.data.success) {
+        toast.success(response.data.message);
+        setData({
+          name: "",
+          description: "",
+          price: "",
+          category: "Starters",
+        });
+        setImage(false);
+      } else {
+        toast.error(response.data.message || "Something went wrong.");
+      }
+    } catch (error) {
+      console.error("Add product error:", error);
+      toast.error("Failed to add product.");
     }
   };
+
   return (
     <div className="add">
       <form className="flex-col" onSubmit={onSubmitHandler}>
@@ -51,70 +67,75 @@ const Add = ({url}) => {
           <label htmlFor="image">
             <img
               src={image ? URL.createObjectURL(image) : assets.upload_area}
-              alt=""
+              alt="upload"
             />
           </label>
           <input
-            onChange={(e) => setImage(e.target.files[0])}
             type="file"
             id="image"
+            accept="image/*"
             hidden
             required
+            onChange={(e) => setImage(e.target.files[0])}
           />
         </div>
+
         <div className="add-product-name flex-col">
           <p>Product name</p>
           <input
-            onChange={onChangeHandler}
-            value={data.name}
             type="text"
             name="name"
             placeholder="Type here"
+            value={data.name}
+            onChange={onChangeHandler}
+            required
           />
         </div>
+
         <div className="add-product-description">
           <p>Product Description</p>
           <textarea
             name="description"
-            onChange={onChangeHandler}
-            value={data.description}
-            id=""
             rows="6"
             placeholder="Write content here"
+            value={data.description}
+            onChange={onChangeHandler}
             required
           ></textarea>
         </div>
+
         <div className="add-category-price">
           <div className="add-category flex-col">
             <p>Product category</p>
-            <select onChange={onChangeHandler} name="category">
-              <option value="Salad">Salad</option>
-              <option value="Rolls">Rolls</option>
-              <option value="Desserts">Desserts</option>
-              <option value="Sandwich">Sandwich</option>
-              <option value="Cake">Cake</option>
-              <option value="Pure Veg">Pure Veg</option>
+            <select name="category" value={data.category} onChange={onChangeHandler}>
+              <option value="Starters">Starters</option>
+              <option value="Chicken Specials">Chicken Specials</option>
+              <option value="Burger, Sandwich & Pizza">Burger, Sandwich & Pizza</option>
+              <option value="Momo & Chowmein">Momo & Chowmein</option>
               <option value="Pasta">Pasta</option>
-              <option value="Noodles">Noodles</option>
+              <option value="Desserts">Desserts</option>
+              <option value="Special Offers">Special Offers ✨</option>
             </select>
           </div>
+
           <div className="add-price flex-col">
             <p>Product price</p>
             <input
-              onChange={onChangeHandler}
-              value={data.price}
-              type="Number"
+              type="number"
               name="price"
-              placeholder="$20"
+              placeholder="Rs.0"
+              value={data.price}
+              onChange={onChangeHandler}
+              required
             />
           </div>
         </div>
-        <button type="submit" className="add-btn">
-          ADD
-        </button>
+
+        <button type="submit" className="add-btn">ADD</button>
       </form>
     </div>
   );
 };
+
 
 export default Add;

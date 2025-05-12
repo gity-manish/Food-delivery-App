@@ -1,14 +1,105 @@
-.food-display{  
-    margin-top: 30px;  
-}  
-.food-display h2{  
-    font-size: max(2vw, 24px);  
-    font-weight: 600;  
-}  
-.food-display-list{  
-    display: grid;  
-    grid-template-columns: repeat(auto-fill,minmax(240px,1fr));  
-    margin-top: 30px;  
-    gap: 30px;  
-    row-gap: 50px;
+.food-display {
+  margin-top: 30px;
+  padding: 0 20px;
+}
+
+.food-display h2 {
+  font-size: clamp(20px, 2.5vw, 28px);
+  font-weight: 600;
+  color: #333;
+  text-align: center;
+}
+
+/* Main grid layout for food items */
+.food-display-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 30px 20px;
+  margin-top: 30px;
+}
+
+/* Style applied to each FoodItem card */
+.food-display-list > * {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 340px;
+  background-color: #fff;
+  border: 1px solid #eee;
+  border-radius: 10px;
+  overflow: hidden;
+  transition: 0.3s ease;
+}
+
+.food-display-list > *:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.food-display-list img {
+  width: 100%;
+  height: 160px;
+  object-fit: cover;
+}
+
+/* Ensures consistent spacing and content layout inside each card */
+.food-display-list .food-item-content {
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+}
+
+.food-display-list .food-item-content h3 {
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 6px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.food-display-list .food-item-content p {
+  font-size: 0.85rem;
+  color: #555;
+  flex-grow: 1;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.food-display-list .food-item-price {
+  font-size: 1rem;
+  font-weight: 600;
+  color: tomato;
+  margin-top: 8px;
+
+}
+
+
+
+/* Responsive behavior */
+@media (max-width: 768px) {
+  .food-display {
+    padding: 0 15px;
+  }
+
+  .food-display h2 {
+    font-size: 1.5rem;
+  }
+
+  .food-display-list {
+    gap: 25px 15px;
+  }
+}
+
+@media (max-width: 480px) {
+  .food-display h2 {
+    font-size: 1.3rem;
+  }
+
+  .food-display-list {
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 20px 10px;
+  }
 }

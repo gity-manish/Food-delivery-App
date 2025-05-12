@@ -1,31 +1,43 @@
-/* eslint-disable react/prop-types */
-// eslint-disable-next-line no-unused-vars
 import React from 'react';
 import './ExploreMenu.css';
-import { menu_list } from '../../assets/assets';
+import { menu_list } from '../../assets/assets/frontend_assets/assets';
+
+
 
 const ExploreMenu = ({ category, setCategory }) => {
-    return (
-        <div className='explore-menu' id='explore-menu'>
-            <h1>Explore our menu</h1>
-            <p className='explore-menu-text'>
-                Choose from a diverse menu featuring a delectable array of dishes. Our mission is to satisfy your cravings and elevate your dining experience, one delicious meal at a time.
-            </p>
-            <div className='explore-menu-list'>
-                {menu_list.map((item, index) => (
-                    <div
-                        onClick={() => setCategory(prev => prev === item.menu_name ? "All" : item.menu_name)}
-                        key={index}
-                        className='explore-menu-list-item'
-                    >
-                        <img className={category === item.menu_name ? "active" : ""} src={item.menu_image} alt='' />
-                        <p>{item.menu_name}</p>
-                    </div>
-                ))}
+  return (
+    <div className="explore-menu" id="explore-menu">
+      <h1>Explore our menu</h1>
+
+      <div className="explore-menu-list">
+        {menu_list.map((item, index) => {
+          const isActive = category === item.menu_name;
+          return (
+            <div
+              key={index}
+              className={`explore-menu-list-item ${isActive ? 'active' : ''}`}
+              onClick={() =>
+                setCategory((prev) => (prev === item.menu_name ? 'All' : item.menu_name))
+              }
+            >
+              <div className="explore-menu-img-wrapper">
+                <img
+                  src={item.menu_image}
+                  alt={item.menu_name}
+                  loading="lazy"
+                  className={isActive ? 'active' : ''}
+                />
+              </div>
+              <p className="menu-name">{item.menu_name}</p>
             </div>
-            <hr />
-        </div>
-    );
-}
+          );
+        })}
+      </div>
+
+      <hr />
+      
+    </div>
+  );
+};
 
 export default ExploreMenu;
